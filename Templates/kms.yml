@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  This Template deloys a KMS customer managed CMK for AWS services. We also
+  configure the KMS Key Policy and grant permissions use the key to our
+  deployment roles.
+
+Parameters:
+  Service:
+    Description: 'Which AWS service is allowed to use this CMK?'
+    Type: String
+    Default: ALL_SERVICES
+
+  KeyName:
+    Description: 'Name of the KMS Key'
+    Type: String
+
+  UserARN:
+    Description: ARN of User Role for this particular Key access. Provide comma delimited values for multiple roles.
+    Type: CommaDelimitedList
+
+Resources:
+  KMSKey:
+    Type: 'AWS::KMS::Key'
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F19
+            reason: "Supressing requirement for logging warning for testing purposes"
+    Properties:
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: Allow cloudtrail use of the key
+          Effect: Allow
+          Principal:
+            Service:
+              "cloudtrail.amazonaws.com"
+          Action:
+            - "kms:Encrypt"
+            - "kms:Decrypt"
+            - "kms:GenerateDataKey*"
+            - "kms:DescribeKey"
+          Resource: '*'
+        - Sid: Allow NLB use of the key
+          Effect: Allow
+          Principal:
+            Service:
+              "delivery.logs.amazonaws.com"
+          Action:
+          - "kms:EnableKeyRotation"
+          - "kms:EnableKey"
+          - "kms:Decrypt"
+          - "kms:ListKeyPolicies"
+          - "kms:PutKeyPolicy"
+          - "kms:GetKeyPolicy"
+          - "kms:DisableKey"
+          - "kms:GenerateDataKeyPair"
+          - "kms:DisableKeyRotation"
+          - "kms:RetireGrant"
+          - "kms:UpdateAlias"
+          - "kms:ListKeys"
+          - "kms:Encrypt"
+          - "kms:GetKeyRotationStatus"
+          - "kms:ScheduleKeyDeletion"
+          - "kms:ListAliases"
+          - "kms:RevokeGrant"
+          - "kms:GenerateDataKey"
+          - "kms:CreateAlias"
+          - "kms:DescribeKey"
+          - "kms:CreateKey"
+          - "kms:DeleteAlias"
+          - "kms:CreateGrant"
+          Resource: '*'
+        - Sid: Allow Management Roles use of the key
+          Effect: Allow
+          Principal:
+            AWS: !Ref UserARN
+          Action:
+          - "kms:*"
+          Resource: '*'
+
+
+  KMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${KeyName}'
+      TargetKeyId:
+        Ref: KMSKey
+
+Outputs:
+  KMSKeyARN:
+    Description: KMS Key ARN
+    Value: !GetAtt KMSKey.Arn
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-KMS-ARN"
+
+  KeyId:
+    Description: 'Key id.'
+    Value: !Ref KMSKey
+    Export:
+      Name: !Sub '${AWS::StackName}-KeyId'

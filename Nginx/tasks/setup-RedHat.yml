@@ -1,0 +1,10 @@
+---
+- name: Enable install nginx
+  command: amazon-linux-extras install -y nginx1
+  become: yes
+
+- name: Ensure nginx is installed.
+  systemd:
+    name: "{{ nginx_package_name }}"
+    state: started
+    enabled: yes

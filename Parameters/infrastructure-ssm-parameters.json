@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "S3IAMConfigStackName",
+    "ParameterValue": "s3-iam-config"
+  },
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue": "vpc-config"
+  }
+]

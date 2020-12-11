@@ -1,0 +1,60 @@
+---
+# Variable setup.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Define nginx_user.
+  set_fact:
+    nginx_user: "{{ __nginx_user }}"
+  when: nginx_user is not defined
+
+- debug:
+    msg: "This is ansible_os_family {{ ansible_os_family }} and ansible_distribution major {{ ansible_distribution_major_version }}"
+
+# Setup/install tasks.
+- include_tasks: setup-RedHat.yml
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version is version_compare('7', '==') or ansible_distribution_major_version is version_compare('2', '==')
+  tags:
+    - always
+
+- include_tasks: setup-Ubuntu.yml
+  when: ansible_distribution == 'Ubuntu'
+
+- include_tasks: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+
+# Vhost configuration.
+- import_tasks: vhosts.yml
+
+# Nginx setup.
+- name: Copy nginx configuration in place.
+  template:
+    src: "{{ nginx_conf_template }}"
+    dest: "{{ nginx_conf_file_path }}"
+    owner: root
+    group: "{{ root_group }}"
+    mode: 0644
+  notify:
+    - reload nginx
+
+- name: Ensure nginx service is running as configured.
+  service:
+    name: nginx
+    state: "{{ nginx_service_state }}"
+    enabled: "{{ nginx_service_enabled }}"
+
+- name: Created web server doc root
+  file:
+    path: "{{ nginx_doc_root }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy index.html to directory
+  copy:
+    src: ../files/index.html
+    dest: "{{ nginx_doc_root }}"
+    owner: root
+    group: "{{ root_group }}"
+    mode: "0644"
