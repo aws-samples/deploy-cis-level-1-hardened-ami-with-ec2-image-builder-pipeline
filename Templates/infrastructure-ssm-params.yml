@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  This template creates Systems Manager Parametor Store values which are
+  utilized for automating the install of AWS Services.
+
+Parameters:
+
+  S3IAMConfigStackName:
+    Description: Stack name which contains all of the Nginx configuration
+    Type: String
+    Default: s3-iam-config
+
+  NetworkStackName:
+    Description: Stack name which contains all of the VPC configuration
+    Type: String
+    Default: vpc-config
+
+  NginxConfigStackName:
+    Description: Stack name which contains all of the VPC configuration
+    Type: String
+    Default: nginx-config
+
+  InstanceType:
+    Type: String
+    Default: t3.large
+    Description: Instance type to use to launch the Nginx instances.
+    AllowedValues:
+    - t3.nano
+    - t3.micro
+    - t3.small
+    - t3.medium
+    - t3.large
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m5.large
+    - m5.xlarge
+    - m5.2xlarge
+    - c4.large
+    - c4.xlarge
+    - c4.large
+    - c5.large
+    - c5.xlarge
+    - c5.large
+
+Resources:
+
+  NLBSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /infrastructure/nginx/nlb/dnsname
+      Type: String
+      Value:
+        Fn::ImportValue: !Sub "${NginxConfigStackName}-NLB-DNS-Name"
+      Description: SSM Parameter for the DNS name of the Nginx Network Load Balancer.
+
+  VPCIDParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /infrastructure/nginx/vpc/vpcid
+      Type: String
+      Value:
+        Fn::ImportValue: !Sub "${NetworkStackName}-VPCID"
+      Description: SSM Parameter for the VPC ID.
+
+  InstanceProfileParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /infrastructure/nginx/ec2/instanceprofilename
+      Type: String
+      Value:
+        Fn::ImportValue: !Sub "${NginxConfigStackName}-Instance-Profile-Name"
+      Description: SSM Parameter for the Nginx Instance Profile.
+
+  NginxSGParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /infrastructure/nginx/ec2/securitygroup
+      Type: String
+      Value:
+        Fn::ImportValue: !Sub "${NginxConfigStackName}-Nginx-Instance-SG"
+      Description: SSM Parameter for the VPC ID.
+
+  NginxInstanceASG1Parameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /phns/infrastructure/nginx/ec2/autoscalinggroupname
+      Type: String
+      Value:
+        Fn::ImportValue: !Sub "${NginxConfigStackName}-Nginx-Instance-ASG1"
+      Description: SSM Parameter for the EC2 ASG.
+
+  EC2InstanceTypeParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /phns/infrastructure/nginx/ec2/instancetype
+      Type: String
+      Value: !Ref InstanceType
+      Description: SSM Parameter for the EC2 Instance Type.
+
+Outputs:
+
+  NLBSSMParameter:
+    Description: Nginx NLB SSM Parameter Name
+    Value: !Ref NLBSSMParameter
+    Export:
+      Name: !Sub '${AWS::StackName}-NLBSSMParameter'
+
+  EC2InstanceTypeParameter:
+    Description: Nginx EC2 Instance Type Parameter Name
+    Value: !Ref EC2InstanceTypeParameter
+    Export:
+      Name: !Sub '${AWS::StackName}-EC2InstanceTypeParameter'
+
+  NginxInstanceASG1Parameter:
+    Description: Nginx EC2 ASG Parameter Name
+    Value: !Ref NginxInstanceASG1Parameter
+    Export:
+      Name: !Sub '${AWS::StackName}-NginxInstanceASG1Parameter'
+
+  NginxSGParameter:
+    Description: Nginx EC2 SG Parameter Name
+    Value: !Ref NginxSGParameter
+    Export:
+      Name: !Sub '${AWS::StackName}-NginxSGParameter'
+
+  InstanceProfileParameter:
+    Description: Nginx EC2 Instance Profile Parameter Name
+    Value: !Ref InstanceProfileParameter
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceProfileParameter'
+
+  VPCIDParameter:
+    Description: Nginx VPC ID SSM Parameter Name
+    Value: !Ref VPCIDParameter
+    Export:
+      Name: !Sub '${AWS::StackName}-VPCIDParameter'

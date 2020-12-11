@@ -1,0 +1,275 @@
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  This template creates a the encrypted S3 Bucket which stores Nginx Config
+  files. This template also creates the roles utilized for setting up the
+  Nginx Proxies.
+
+Parameters:
+
+  Environment:
+    AllowedValues:
+      - 'dev'
+      - 'devops'
+      - 'uat'
+    Description: >-
+      Set environment in which the VPC will be created.
+    Type: String
+
+  DemoConfigS3BucketName:
+    Type: String
+
+  EC2InstanceRoleName:
+    Type: String
+    Default: EC2InstanceRole
+
+  EC2ImageBuilderRoleName:
+    Type: String
+    Default: EC2ImageBuilderRole
+
+  S3PutLambdaRoleName:
+    Type: String
+    Default: NginxS3PutLambdaRole
+
+  NetworkStackName:
+    Description: Stack name which has all of the VPC configuration
+    Type: String
+
+  KMSStackName:
+    Description: Stack name which has all of the KMS configuration
+    Type: String
+
+Resources:
+
+# S3 Bucket where Nginx Config and Image Builder Config will live
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref DemoConfigS3BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID:
+                Fn::ImportValue: !Sub "${KMSStackName}-KeyId"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  S3PutLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref S3PutLambdaRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:PutObject
+            - s3:DeleteObject
+            Resource: !Sub '${S3Bucket.Arn}*'
+
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref EC2InstanceRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - ssm.amazonaws.com
+            - ec2.amazonaws.com
+            - s3.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:Get*
+            - s3:List*
+            - s3:Put*
+            Resource: !Sub '${S3Bucket.Arn}*'
+          - Effect: Allow
+            Action:
+            - ec2:ModifyInstanceAttribute
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - kms:Decrypt
+            Resource: '*'
+
+  ImageBuilderIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      # RoleName: !Sub '${AWS::StackName}-EC2ImageBuilderRole'
+      RoleName: !Ref EC2ImageBuilderRoleName
+      Description: 'This role will grant EC2 ImageBuilder minimum neccessary permissions to allow pipelines to execute'
+      MaxSessionDuration: 3600 # in seconds
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ssm.amazonaws.com
+                - imagebuilder.amazonaws.com
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder'
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+      Policies:
+        - PolicyName: GrantS3Read
+          PolicyDocument:
+            Statement:
+              - Sid: GrantS3Read
+                Effect: Allow
+                Action:
+                  - s3:List*
+                  - s3:Get*
+                  - s3:Put*
+                Resource: !Sub 'arn:aws:s3:::${S3Bucket}*'
+        - PolicyName: DecryptKms
+          PolicyDocument:
+            Statement:
+              - Sid: DecryptKms
+                Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:GenerateDataKey*
+                  - ec2:DescribeImages
+                  - ssm:PutParameter
+                Resource: '*'
+        - PolicyName: GrantSsm
+          PolicyDocument:
+            Statement:
+              - Sid: GrantSsm
+                Effect: Allow
+                Action:
+                  - ssm:SendCommand
+                Resource:
+                  - 'arn:aws:ssm:us-east-1::document/AmazonInspector-ManageAWSAgent'
+                  - !Sub 'arn:aws:ec2:us-east-1:${AWS::AccountId}:*/*'
+        - PolicyName: Ec2Tags
+          PolicyDocument:
+            Statement:
+              - Sid: TagOnCreate
+                Effect: Allow
+                Action:
+                  - ec2:CreateTags
+                  - ec2:RunInstances
+                Resource: !Sub 'arn:aws:ec2:us-east-1:${AWS::AccountId}:*/*'
+        - PolicyName: InspectorResource
+          PolicyDocument:
+            Statement:
+              - Sid: InspectorGroup
+                Effect: Allow
+                Action:
+                  - inspector:Create*
+                  - inspector:Get*
+                  - inspector:Describe*
+                  - inspector:List*
+                  - inspector:Set*
+                  - inspector:Start*
+                  - inspector:Stop*
+                  - inspector:PreviewAgents
+                Resource: '*'
+        - PolicyName: NginxScript
+          PolicyDocument:
+            Statement:
+              - Sid: NginxRunScript
+                Effect: Allow
+                Action:
+                  - cloudformation:SignalResource
+                  - ec2:ModifyInstanceAttribute
+                Resource: !Sub 'arn:aws:ec2:us-east-1:${AWS::AccountId}:*/*'
+
+Outputs:
+
+  EC2InstanceRoleArn:
+    Value: !GetAtt EC2InstanceRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-Nginx-Instance-Role-ARN"
+
+  EC2InstanceRoleName:
+    Value: !Ref EC2InstanceRole
+    Export:
+      Name: !Sub "${AWS::StackName}-Nginx-Instance-Role-Name"
+
+  S3PutLambdaRoleArn:
+    Value: !GetAtt S3PutLambdaRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-S3-Put-Lambda-Role-ARN"
+
+  S3PutLambdaRoleName:
+    Value: !Ref S3PutLambdaRole
+    Export:
+      Name: !Sub "${AWS::StackName}-S3-Put-Lambda-Role-Name"
+
+  ImageBuilderRoleArn:
+    Value: !GetAtt ImageBuilderIamRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-Image-Builder-Role-ARN"
+
+  ImageBuilderRoleName:
+    Value: !Ref ImageBuilderIamRole
+    Export:
+      Name: !Sub "${AWS::StackName}-Image-Builder-Role-Name"
+
+  S3BucketArn:
+    Description: S3 Bucket ARN
+    Value: !GetAtt S3Bucket.Arn
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-Bucket-ARN"
+
+  S3BucketName:
+    Description: S3 Bucket Name
+    Value: !Ref S3Bucket
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-Bucket-Name"

@@ -1,0 +1,30 @@
+[
+  {
+    "ParameterKey" : "VPCCIDR",
+    "ParameterValue" : "10.0.0.0/16"
+  },
+  {
+    "ParameterKey" : "Environment",
+    "ParameterValue" : "dev"
+  },
+  {
+    "ParameterKey" : "AvailabilityZones",
+    "ParameterValue" : "us-east-1a, us-east-1c"
+  },
+  {
+    "ParameterKey" : "PublicSubnet1ACIDR",
+    "ParameterValue" : "10.0.1.0/24"
+  },
+  {
+    "ParameterKey" : "PublicSubnet2ACIDR",
+    "ParameterValue" : "10.0.2.0/24"
+  },
+  {
+    "ParameterKey" : "PrivateSubnet2Z1CIDR",
+    "ParameterValue" : "10.0.3.0/24"
+  },
+  {
+    "ParameterKey" : "PrivateSubnet2Z2CIDR",
+    "ParameterValue" : "10.0.4.0/24"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "ParameterKey" : "Environment",
+    "ParameterValue" : "dev"
+  },
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue" : "vpc-config"
+  },
+  {
+    "ParameterKey" : "S3IAMConfigStackName",
+    "ParameterValue" : "s3-iam-config"
+  },
+  {
+    "ParameterKey": "AmiId",
+    "ParameterValue" : "<input_the_cis_hardened_ami_id>"
+  },
+  {
+    "ParameterKey": "ApplicationName",
+    "ParameterValue" : "Nginx"
+  },
+  {
+    "ParameterKey": "ALBName",
+    "ParameterValue" : "DemoNLB"
+  },
+  {
+    "ParameterKey": "TargetGroupName",
+    "ParameterValue" : "DemoTG"
+  }
+]

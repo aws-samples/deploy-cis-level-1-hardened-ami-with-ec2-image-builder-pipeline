@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey" : "Environment",
+    "ParameterValue" : "dev"
+  },
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue" : "vpc-config"
+  }
+]

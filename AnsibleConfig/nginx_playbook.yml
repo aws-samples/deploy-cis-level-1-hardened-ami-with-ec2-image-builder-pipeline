@@ -1,0 +1,12 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+---
+
+- name: Linux CIS Level 1 Nginx
+  hosts: 127.0.0.1
+  gather_facts: true
+  connection: local
+  become: yes
+
+  roles:
+    - Nginx

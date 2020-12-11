@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "ImageBuilderBucketName",
+    "ParameterValue": "<input_your_bucket_name>"
+  },
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue": "vpc-config"
+  },
+  {
+    "ParameterKey": "KMSStackName",
+    "ParameterValue": "kms-config"
+  },
+  {
+    "ParameterKey": "S3ConfigStackName",
+    "ParameterValue": "s3-iam-config"
+  }
+]
