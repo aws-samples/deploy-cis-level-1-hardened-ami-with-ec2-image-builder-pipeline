@@ -45,13 +45,13 @@ Parameters:
 
 Resources:
 
-  NLBSSMParameter:
+  ALBSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /infrastructure/nginx/nlb/dnsname
+      Name: /infrastructure/nginx/alb/dnsname
       Type: String
       Value:
-        Fn::ImportValue: !Sub "${NginxConfigStackName}-NLB-DNS-Name"
+        Fn::ImportValue: !Sub "${NginxConfigStackName}-ALB-DNS-Name"
       Description: SSM Parameter for the DNS name of the Nginx Network Load Balancer.
 
   VPCIDParameter:
@@ -100,11 +100,11 @@ Resources:
 
 Outputs:
 
-  NLBSSMParameter:
-    Description: Nginx NLB SSM Parameter Name
-    Value: !Ref NLBSSMParameter
+  ALBSSMParameter:
+    Description: Nginx ALB SSM Parameter Name
+    Value: !Ref ALBSSMParameter
     Export:
-      Name: !Sub '${AWS::StackName}-NLBSSMParameter'
+      Name: !Sub '${AWS::StackName}-ALBSSMParameter'
 
   EC2InstanceTypeParameter:
     Description: Nginx EC2 Instance Type Parameter Name

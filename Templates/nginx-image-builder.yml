@@ -180,7 +180,7 @@ Resources:
       InfrastructureConfigurationArn: !Ref Infrastructure
       DistributionConfigurationArn: !Ref Distribution
       ImageTestsConfiguration:
-        ImageTestsEnabled: false
+        ImageTestsEnabled: true
         TimeoutMinutes: 60
       Tags:
         ResourceGroup: 'Nginx'

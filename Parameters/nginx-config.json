@@ -13,7 +13,7 @@
   },
   {
     "ParameterKey": "AmiId",
-    "ParameterValue" : "<input_the_cis_hardened_ami_id>"
+    "ParameterValue" : "ami-07420f374d808af68"
   },
   {
     "ParameterKey": "ApplicationName",
