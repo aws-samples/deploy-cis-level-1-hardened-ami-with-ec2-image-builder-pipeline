@@ -5,6 +5,6 @@
   },
   {
     "ParameterKey": "UserARN",
-    "ParameterValue": "arn:aws:iam::221004848282:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling,arn:aws:iam::<input_your_aws_account_id>:role/NginxS3PutLambdaRole,arn:aws:iam::221004848282:role/aws-service-role/imagebuilder.amazonaws.com/AWSServiceRoleForImageBuilder,arn:aws:iam::221004848282:role/EC2InstanceRole,arn:aws:iam::221004848282:role/EC2ImageBuilderRole,arn:aws:iam::221004848282:root"
+    "ParameterValue": "arn:aws:iam::12345678910:root"
   }
 ]

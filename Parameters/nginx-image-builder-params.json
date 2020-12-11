@@ -5,7 +5,7 @@
   },
   {
     "ParameterKey": "ImageBuilderBucketName",
-    "ParameterValue": "demobucket2742972"
+    "ParameterValue": "<input_your_bucket_name>"
   },
   {
     "ParameterKey": "NetworkStackName",

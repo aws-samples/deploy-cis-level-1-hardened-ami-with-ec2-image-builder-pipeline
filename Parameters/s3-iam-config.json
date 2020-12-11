@@ -13,7 +13,7 @@
   },
   {
     "ParameterKey": "DemoConfigS3BucketName",
-    "ParameterValue" : "demobucket2742972"
+    "ParameterValue" : "<input_your_unique_bucket_name>"
   },
   {
     "ParameterKey" : "EC2InstanceRoleName",
