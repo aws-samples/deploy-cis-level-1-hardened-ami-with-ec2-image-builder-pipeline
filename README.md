@@ -1,4 +1,4 @@
-### Deploying CIS Level 1 hardened AMIs with Amazon EC2 Image Builder
+# Deploying CIS Level 1 hardened AMIs with Amazon EC2 Image Builder
 In this post, we demonstrate how to create an automated process that builds and deploys Center for Internet Security (CIS) Level 1 hardened AMIs. The pattern that we deploy includes Image Builder, a CIS Level 1 hardened AMI, an application running on EC2 instances, and Amazon Inspector for security analysis. You deploy the AMI configured with the Image Builder pipeline to an application stack. The application stack consists of EC2 instances running Nginx. Lastly, we show you how to re-hydrate your application stack with a new AMI utilizing AWS CloudFormation and Amazon EC2 launch templates. You use Amazon Inspector to scan the EC2 instances launched from the Image Builder-generated AMI against the CIS Level 1 Benchmark.
 
 ## Motivation
