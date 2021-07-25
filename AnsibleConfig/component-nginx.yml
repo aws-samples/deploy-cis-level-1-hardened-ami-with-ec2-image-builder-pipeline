@@ -19,8 +19,7 @@ phases:
         action: ExecuteBash
         inputs:
           commands:
-            - sudo mkdir -p /ansibleloc/roles/LinuxCis
-            - sudo mkdir -p /ansibleloc/roles/Nginx
+            - sudo mkdir -p /ansibleloc/roles/LinuxCis /ansibleloc/roles/Nginx
       - name: DownloadLinuxCis
         action: S3Download
         inputs:
