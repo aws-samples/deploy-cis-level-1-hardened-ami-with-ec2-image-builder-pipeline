@@ -6,7 +6,7 @@ schemaVersion: 1.0
 constants:
   - s3bucket:
       type: string
-      value: <input_s3_bucket_name> # <-- REPLACE VALUE HERE WITH S3 BUCKET NAME 
+      value: <input_s3_bucket_name> # <-- REPLACE VALUE HERE WITH S3 BUCKET NAME
 phases:
   - name: build
     steps:
