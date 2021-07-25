@@ -6,7 +6,7 @@ schemaVersion: 1.0
 constants:
   - s3bucket:
       type: string
-      value: <input_s3_bucket_name> # <-- REPLACE VALUE HERE WITH S3 BUCKET NAME
+      value: <input_s3_bucket_name> # <-- REPLACE VALUE HERE WITH S3 BUCKET NAME 
 phases:
   - name: build
     steps:
@@ -19,7 +19,8 @@ phases:
         action: ExecuteBash
         inputs:
           commands:
-            - sudo mkdir -p /ansibleloc/roles
+            - sudo mkdir -p /ansibleloc/roles/LinuxCis #Fixed, added parent file for role to work
+            - sudo mkdir -p /ansibleloc/roles/Nginx  #Fixed, added parent file for role to work
       - name: DownloadLinuxCis
         action: S3Download
         inputs:
@@ -29,7 +30,7 @@ phases:
         action: ExecuteBash
         inputs:
           commands:
-            - unzip /ansibleloc/linux-cis.zip -d /ansibleloc/roles
+            - unzip /ansibleloc/linux-cis.zip -d /ansibleloc/roles/LinuxCis #Fixed, added destination to unpack files to corresponding role folder
             - echo "unzip linux-cis file"
       - name: DownloadCisPlaybook
         action: S3Download
@@ -57,7 +58,7 @@ phases:
         action: ExecuteBash
         inputs:
           commands:
-            - unzip /ansibleloc/nginx.zip -d /ansibleloc/roles
+            - unzip /ansibleloc/nginx.zip -d /ansibleloc/roles/Nginx #Fixed, added destination to unpack files to corresponding role folder
             - echo "unzip Nginx file"
       - name: DownloadNginxPlaybook
         action: S3Download
