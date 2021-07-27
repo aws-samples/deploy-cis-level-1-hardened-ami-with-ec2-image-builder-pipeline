@@ -1,0 +1,26 @@
+---
+- name: Deploy the IAM role configuration template
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Modifying kms-params.json with user information
+      template:
+        src:  Parameters/s3-iam-config.j2
+        dest: Parameters/s3-iam-config.json
+
+    - name: Loading data from s3-iam-config.json
+      set_fact:
+        iam_loaded_data: "{{ lookup('file','Parameters/s3-iam-config.json') | from_json }}"
+
+    - name: Formatting data from s3-iam-config.json
+      set_fact:
+        iam_formatted_data: "{{ iam_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Creating and deploying the IAM stack
+      cloudformation:
+        stack_name: s3-iam-config
+        template_body: '{{ lookup("file", "Templates/s3-iam-config.yml") }}'
+        template_parameters: "{{ iam_formatted_data }}" 
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+...

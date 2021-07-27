@@ -1,0 +1,21 @@
+---
+- name: Configure the instance infrastructure
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Load data from infrastructure-ssm-parameters.json
+      set_fact:
+        infra_loaded_data: "{{ lookup('file','Parameters/infrastructure-ssm-parameters.json') | from_json }}"
+
+    - name: Formatting data from infrastructure-ssm-parameters.json
+      set_fact:
+        infra_formatted_data: "{{ infra_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Adding the infrastructure ssm stack
+      cloudformation:
+        stack_name: ssm-params-config 
+        template_body: '{{ lookup("file", "Templates/infrastructure-ssm-params.yml") }}'
+        template_parameters: "{{ infra_formatted_data }}"
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+...

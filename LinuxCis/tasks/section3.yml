@@ -1,12 +1,17 @@
+
 - name: "SCORED | 3.1.1 | PATCH | Ensure IP forwarding is disabled"
   sysctl:
-      name: net.ipv4.ip_forward
-      value: '0'
+      name: '{{ item.name }}'
+      value: '{{ item.value }}'
       state: present
       reload: yes
       ignoreerrors: yes
+  with_items:
+      - { name: net.ipv4.ip_forward, value: 0 }
+      - { name: net.ipv6.conf.all.forwarding, value: 0 }
   notify:
       - sysctl flush ipv4 route table
+      - sysctl flush ipv6 route table
   when:
       - not rhel7cis_is_router
       - rhel7cis_rule_3_1_1|bool
@@ -49,8 +54,11 @@
   with_items:
       - { name: net.ipv4.conf.all.accept_source_route, value: 0 }
       - { name: net.ipv4.conf.default.accept_source_route, value: 0 }
+      - { name: net.ipv6.conf.all.accept_source_route, value: 0 }
+      - { name: net.ipv6.conf.default.accept_source_route, value: 0 }
   notify:
       - sysctl flush ipv4 route table
+      - sysctl flush ipv6 route table
   when:
       - rhel7cis_rule_3_2_1|bool
   tags:
@@ -330,6 +338,66 @@
       - patch
       - rule_3.5.1
 
+- name: "SCORED | 3.5.1.1 | PATCH | Ensure default deny firewall policy"
+  iptables:
+    chain: "{{ item.name }}" 
+    policy: "{{ item.value }}"
+  with_items:
+      - { name: INPUT, value: DROP }
+      - { name: OUTPUT, value: DROP }
+      - { name: FORWARD, value: DROP }
+  tags:
+      - level1
+      - patch
+
+- name: "SCORED | 3.5.1.2.1 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    chain: INPUT
+    action: append 
+    in_interface: lo
+    jump: ACCEPT
+  tags:
+      - level1
+      - patch
+
+- name: "SCORED | 3.5.1.2.2 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    chain: OUTPUT
+    action: append 
+    out_interface: lo
+    jump: ACCEPT
+  tags:
+      - level1
+      - patch
+
+- name: "SCORED | 3.5.1.2.3 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    chain: INPUT
+    action: append 
+    source: '127.0.0.0/8'
+    jump: DROP
+  tags:
+      - level1
+      - patch
+
+- name: "SCORED | 3.5.1.4 | PATCH | Ensure firewall rules exist for all open ports"
+  firewalld:
+    service: "{{ item }}"
+    state: enabled
+    zone: drop
+    permanent: true
+    immediate: true
+  notify: restart firewalld
+  with_items: "{{ rhel7cis_firewall_services }}"
+  when:
+    - rhel7cis_firewall == "firewalld"
+    - rhel7cis_rule_3_6_5|bool
+    - ansible_connection != 'docker'
+  tags:
+    - level1
+    - patch
+    - rule_3.6.5
+
 - name: "NOTSCORED | 3.5.2 | PATCH | Ensure SCTP is disabled"
   lineinfile:
       dest: /etc/modprobe.d/CIS.conf
@@ -342,6 +410,71 @@
       - level1
       - patch
       - rule_3.5.2
+
+- name: "SCORED | 3.5.2.1 | PATCH | Ensure default deny firewall policy"
+  iptables:
+    chain: "{{ item }}" 
+    policy: DROP
+    ip_version: ipv6
+  with_items:
+    - INPUT
+    - OUTPUT
+    - FORWARD
+  when:
+      - rhel7cis_firewall == "firewalld"
+      - rhel7cis_rule_3_6_2|bool
+  tags:
+      - level1
+      - patch
+      - rule_3.6.2
+
+- name: "SCORED | 3.5.2.2.1 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    action: append
+    chain: INPUT 
+    jump: ACCEPT
+    in_interface: lo
+    ip_version: ipv6
+  when:
+      - rhel7cis_firewall == "iptables"
+      - rhel7cis_rule_3_6_3|bool
+  tags:
+      - level1
+      - patch
+      - rule_3.6.3
+      - notimplemented
+
+- name: "SCORED | 3.5.2.2.2 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    action: append
+    chain: OUTPUT 
+    jump: ACCEPT
+    out_interface: lo
+    ip_version: ipv6
+  when:
+      - rhel7cis_firewall == "iptables"
+      - rhel7cis_rule_3_6_3|bool
+  tags:
+      - level1
+      - patch
+      - rule_3.6.3
+      - notimplemented
+
+- name: "SCORED | 3.5.2.2.3 | PATCH | Ensure loopback traffic is configured"
+  iptables:
+    action: append
+    chain: INPUT 
+    jump: DROP
+    source: ::1
+    ip_version: ipv6
+  when:
+      - rhel7cis_firewall == "iptables"
+      - rhel7cis_rule_3_6_3|bool
+  tags:
+      - level1
+      - patch
+      - rule_3.6.3
+      - notimplemented
 
 - name: "NOTSCORED | 3.5.3 | PATCH | Ensure RDS is disabled"
   lineinfile:

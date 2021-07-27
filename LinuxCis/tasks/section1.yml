@@ -594,15 +594,13 @@
 
 - name: "SCORED | 1.3.2 | PATCH | Ensure filesystem integrity is regularly checked"
   cron:
-      name: Run AIDE integrity check
-      cron_file: "{{ rhel7cis_aide_cron['cron_file'] }}"
-      user: "{{ rhel7cis_aide_cron['cron_user'] }}"
-      minute: "{{ rhel7cis_aide_cron['aide_minute'] | default('0') }}"
-      hour: "{{ rhel7cis_aide_cron['aide_hour'] | default('5') }}"
-      day: "{{ rhel7cis_aide_cron['aide_day'] | default('*') }}"
-      month: "{{ rhel7cis_aide_cron['aide_month'] | default('*') }}"
-      weekday: "{{ rhel7cis_aide_cron['aide_weekday'] | default('*') }}"
-      job: "{{ rhel7cis_aide_cron['aide_job'] }}"
+    name: Run AIDE integrity check
+    minute: "{{ rhel7cis_aide_cron['aide_minute'] | default('0') }}"
+    hour: "{{ rhel7cis_aide_cron['aide_hour'] | default('5') }}"
+    day: "{{ rhel7cis_aide_cron['aide_day'] | default('*') }}"
+    month: "{{ rhel7cis_aide_cron['aide_month'] | default('*') }}"
+    weekday: "{{ rhel7cis_aide_cron['aide_weekday'] | default('*') }}"
+    job: "{{ rhel7cis_aide_cron['aide_job'] }}"
   when:
       - rhel7cis_rule_1_3_2|bool
   tags:

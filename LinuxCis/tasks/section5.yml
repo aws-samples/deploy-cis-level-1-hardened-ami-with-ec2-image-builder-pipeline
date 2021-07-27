@@ -389,49 +389,45 @@
         lineinfile:
             state: present
             dest: /etc/ssh/sshd_config
-            regexp: "(?i)^AllowUsers"
+            regexp: "^AllowUsers"
             line: AllowUsers {{ rhel7cis_sshd['allowusers'] }}
-            validate: /usr/sbin/sshd -t -f %s
         notify:
             - restart sshd
         when:
-            - rhel7cis_sshd['allowusers'] | default('')
+            - "rhel7cis_sshd['allowusers']|default('') | length > 0"
 
       - name: "SCORED | 5.2.15 | PATCH | Ensure SSH access is limited - allowgroups"
         lineinfile:
             state: present
             dest: /etc/ssh/sshd_config
-            regexp: "(?i)^AllowGroups"
+            regexp: "^AllowGroups"
             line: AllowGroups {{ rhel7cis_sshd['allowgroups'] }}
-            validate: /usr/sbin/sshd -t -f %s
         notify:
             - restart sshd
         when:
-            - rhel7cis_sshd['allowgroups'] | default('')
+            - "rhel7cis_sshd['allowgroups']|default('') | length >0"
 
       - name: "SCORED | 5.2.15 | PATCH | Ensure SSH access is limited - denyusers"
         lineinfile:
             state: present
             dest: /etc/ssh/sshd_config
-            regexp: "(?i)^DenyUsers"
+            regexp: "^DenyUsers"
             line: DenyUsers {{ rhel7cis_sshd['denyusers'] }}
-            validate: /usr/sbin/sshd -t -f %s
         notify:
             - restart sshd
         when:
-            - rhel7cis_sshd['denyusers'] | default('')
+            - "rhel7cis_sshd['denyusers']|default('') | length >0"
 
       - name: "SCORED | 5.2.15 | PATCH | Ensure SSH access is limited - denygroups"
         lineinfile:
             state: present
             dest: /etc/ssh/sshd_config
-            regexp: "(?i)^DenyGroups"
+            regexp: "^DenyGroups"
             line: DenyGroups {{ rhel7cis_sshd['denygroups'] }}
-            validate: /usr/sbin/sshd -t -f %s
         notify:
             - restart sshd
         when:
-            - rhel7cis_sshd['denygroups'] | default('')
+            - "rhel7cis_sshd['denygroups']|default('') | length >0"
   when:
       - rhel7cis_rule_5_2_15|bool
   tags:
@@ -439,6 +435,21 @@
       - level2
       - patch
       - rule_5.2.15
+
+- name: "SCORED | 5.2.15 | PATCH | Ensure only strong Key Exchange algorithms are used"
+  lineinfile:
+    state: present
+    dest: /etc/ssh/sshd_config
+    regexp: '^KexAlgorithms'
+    line: "KexAlgorithms {{ rhel7cis_sshd['kex'] }}"
+  notify:
+    - restart sshd
+  when: 
+    - rhel7cis_rule_5_2_15
+  tags:
+    - level1
+    - patch
+    - rule_5.2.15
 
 - name: "SCORED | 5.2.16 | PATCH | Ensure SSH warning banner is configured"
   lineinfile:
@@ -471,29 +482,56 @@
       - patch
       - rule_5.3.1
 
-- name: "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured"
-  command: /bin/true
-  changed_when: no
-  when:
-      - rhel7cis_rule_5_3_2|bool
-  tags:
-      - level1
-      - level2
-      - patch
-      - rule_5.3.2
-      - notimplemented
-
-- name: "SCORED | 5.3.3 | PATCH | Ensure password reuse is limited"
-  command: /bin/true
-  changed_when: no
-  when:
-      - rhel7cis_rule_5_3_3|bool
-  tags:
-      - level1
-      - level2
-      - patch
-      - rule_5.3.3
-      - notimplemented
+- name: |
+        "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured
+         SCORED | 5.3.3 | PATCH | Ensure password hashing algorithm is SHA-512
+         SCORED | 5.3.4 | PATCH | Ensure password reuse is limited"
+  block:
+    - name: "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured | Add deny count and unlock time for preauth"
+      lineinfile:
+        dest: /etc/pam.d/{{ item }}
+        state: present
+        line: "auth        required      pam_faillock.so preauth audit silent deny={{ rhel7cis_pam_faillock.attempts }}{{ (rhel7cis_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}unlock_time={{ rhel7cis_pam_faillock.unlock_time }}"
+        insertafter: '^#?auth ?'
+      loop:
+        - "system-auth"
+        - "password-auth"
+  
+    - name: "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured | Add success and default settings to pam_unix.so"
+      lineinfile:
+        dest: /etc/pam.d/{{ item }}
+        state: present
+        line: "auth        [success=1 default=bad] pam_unix.so"
+        insertafter: '^#?auth ?'
+      loop:
+        - "system-auth"
+        - "password-auth"
+  
+    - name: "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured | Add default, deny count, and unlock times for authfail"
+      lineinfile:
+        dest: /etc/pam.d/{{ item }}
+        state: present
+        line: "auth        [default=die] pam_faillock.so authfail audit deny={{ rhel7cis_pam_faillock.attempts }}{{ (rhel7cis_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}unlock_time={{ rhel7cis_pam_faillock.unlock_time }}"
+        insertafter: '^#?auth ?'
+      loop:
+        - "system-auth"
+        - "password-auth"
+  
+    - name: "SCORED | 5.3.2 | PATCH | Ensure lockout for failed password attempts is configured | Add deny count and unlock times to authsucc"
+      lineinfile:
+        dest: /etc/pam.d/{{ item }}
+        state: present
+        line: "auth        sufficient    pam_faillock.so authsucc audit deny={{ rhel7cis_pam_faillock.attempts }}{{ (rhel7cis_pam_faillock.fail_for_root) | ternary(' even_deny_root ',' ') }}unlock_time={{ rhel7cis_pam_faillock.unlock_time }}"
+        insertafter: '^#?auth ?'
+      loop:
+        - "system-auth"
+        - "password-auth"
+  
+    - name: "SCORED | 5.3.3 | PATCH | Ensure password hashing algorithm is SHA-512 | add sha512 settings"
+      lineinfile:
+        dest: /etc/pam.d/{{ item }}
+        state: present
+        line: "password    sufficient    pam_unix.so {{ rhel7cis_pam_faillock.pwhash }} shadow nullok try_first_pass use_authtok"
 
 - name: "SCORED | 5.3.4 | PATCH | Ensure password hashing algorithm is SHA-512"
   command: authconfig --passalgo=sha512 --update
@@ -550,16 +588,31 @@
       - rule_5.4.1.3
 
 - name: "SCORED | 5.4.1.4 | PATCH | Ensure inactive password lock is 30 days or less"
-  command: /bin/true
-  changed_when: no
+  block:
+    - name: "SCORED | 5.4.1.4 | PATCH | Ensure inactive password lock is 30 days or less | Set default inactive setting"
+      lineinfile:
+        path: /etc/default/useradd
+        regexp: '^INACTIVE='
+        line: "INACTIVE={{ rhel7cis_inactivelock['lock_days'] }}"
+        state: present
+  
+    - name: "AUDIT | 5.4.1.4 | PATCH | Ensure inactive password lock is 30 days or less | Getting user list"
+      shell: "egrep ^[^:]+:[^\\!*] /etc/shadow | awk -F: '{print $1 \",\" $7}' | egrep -v  ',\\d|,[1-2][0-9]|,30|{{ rhel7cis_inactive_whitelist | join('|') }}' | cut -d , -f1"
+      register: rhel_07_5_4_1_4_audit
+      changed_when: no
+  
+    - name: "SCORED | 5.4.1.4 | PATCH | Ensure inactive password lock is 30 days or less | Apply Inactive setting to existing accounts"
+      command: "chage --inactive {{ rhel7cis_inactivelock.lock_days }} {{ item }}"
+      with_items:
+      - "{{ rhel_07_5_4_1_4_audit.stdout_lines }}"
+      when:
+      - rhel_07_5_4_1_4_audit.stdout | length > 0
   when:
-      - rhel7cis_rule_5_4_1_4|bool
+  - rhel7cis_rule_5_4_1_4
   tags:
-      - level1
-      - level2
-      - patch
-      - rule_5.4.1.4
-      - notimplemented
+  - level1
+  - patch
+  - rule_5.4.1.4
 
 - name: "SCORED | 5.4.2 | PATCH | Ensure system accounts are non-login"
   shell: "awk -F: '($3 < {{ rhel7cis_rule_5_4_2_min_uid }}) {print $1 }' /etc/passwd"
@@ -632,6 +685,21 @@
             path: /etc/profile
             regexp: '(^\s+umask) 002'
             replace: '\1 027'
+
+      - name: "SCORED | 5.4.4 | PATCH | Ensure default user umask is 027 or more restrictive - /etc/profile.d/*.sh"
+        replace:
+            path: /etc/profile.d/{{ item }}
+            regexp: '(^\s+umask) 002'
+            replace: '\1 027'
+        with_items:
+          - 256term.sh
+          - bash_completion.sh
+          - colorgrep.sh
+          - colorls.sh
+          - lang.sh
+          - less.sh
+          - vim.sh
+          - which2.sh
   when:
       - rhel7cis_rule_5_4_4|bool
   tags:

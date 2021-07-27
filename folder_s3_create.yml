@@ -1,0 +1,11 @@
+---
+- name: Create a folder inside of the encrypted S3 bucket generated in the s3-iam-config stack
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Creating folder inside S3 bucket
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components
+        mode: create
+...

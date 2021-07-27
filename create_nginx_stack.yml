@@ -1,0 +1,20 @@
+---
+- name: Configure the custom instance with nginx 
+  hosts: localhost
+  tasks:
+    - name: Load data from nginx-config.json
+      set_fact:
+        nginx_loaded_data: "{{ lookup('file','Parameters/nginx-config.json') | from_json }}"
+
+    - name: Formatting data from nginx-config.json
+      set_fact:
+        nginx_formatted_data: "{{ nginx_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Adding the nginx configuration stack
+      cloudformation:
+        stack_name: nginx-config 
+        template_body: '{{ lookup("file", "Templates/nginx-config.yml") }}'
+        template_parameters: "{{ nginx_formatted_data }}"
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+...

@@ -1,0 +1,17 @@
+---
+- name: Zip the configuration files used in the Image Builder pipeline process
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Zip LinuxCis
+      archive:
+        path: LinuxCis/
+        dest: linux-cis.zip
+        format: zip
+
+    - name: Zip Nginx
+      archive:
+        path: Nginx/
+        dest: nginx.zip
+        format: zip
+...

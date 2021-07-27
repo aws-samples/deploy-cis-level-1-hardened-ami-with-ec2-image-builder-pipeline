@@ -6,7 +6,7 @@ schemaVersion: 1.0
 constants:
   - s3bucket:
       type: string
-      value: <input_s3_bucket_name> # <-- REPLACE VALUE HERE WITH S3 BUCKET NAME
+      value: "{{ s3_bucket_name }}" 
 phases:
   - name: build
     steps:
@@ -19,7 +19,8 @@ phases:
         action: ExecuteBash
         inputs:
           commands:
-            - sudo mkdir -p /ansibleloc/roles/LinuxCis /ansibleloc/roles/Nginx
+            - sudo mkdir -p /ansibleloc/roles/LinuxCis
+            - sudo mkdir -p /ansibleloc/roles/Nginx
       - name: DownloadLinuxCis
         action: S3Download
         inputs:
