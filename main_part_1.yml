@@ -31,9 +31,6 @@
 - name: Importing update_kms_stack.yml
   import_playbook: update_kms_stack.yml 
 
-- name: Importing update_nginx.yml
-  import_playbook: update_nginx.yml 
-
 - name: Importing folder_s3_create.yml 
   import_playbook: folder_s3_create.yml 
 
