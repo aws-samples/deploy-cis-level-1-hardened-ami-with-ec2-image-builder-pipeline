@@ -9,7 +9,7 @@
 
     - name: Formatting data from vpc-params.json
       set_fact:
-        vpc_formatted_data: "{{ loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+        vpc_formatted_data: "{{ vpc_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
 
     - name: Deploying the VPC CloudFormation template
       cloudformation:
