@@ -7,4 +7,6 @@
       template:
         src: AnsibleConfig/component-nginx.j2
         dest: AnsibleConfig/component-nginx.yml
+        variable_start_string: "[["
+        variable_end_string: "]]"
 ...

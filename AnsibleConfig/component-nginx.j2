@@ -6,9 +6,9 @@ schemaVersion: 1.0
 constants:
   - s3bucket:
       type: string
-      value: gbmtestingbucket 
+      value: [[ s3_bucket_name ]]
 phases:
-  - name: build
+  - name: helloworld
     steps:
       - name: InstallAnsible
         action: ExecuteBash
@@ -24,7 +24,7 @@ phases:
       - name: DownloadLinuxCis
         action: S3Download
         inputs:
-          - source: 's3://{{ s3bucket }}/components/linux-cis.zip'
+          - source: 's3://[[ s3_bucket_name ]]/components/linux-cis.zip'
             destination: '/ansibleloc/linux-cis.zip'
       - name: UzipLinuxCis
         action: ExecuteBash
@@ -35,19 +35,19 @@ phases:
       - name: DownloadCisPlaybook
         action: S3Download
         inputs:
-          - source: 's3://{{ s3bucket }}/components/cis_playbook.yml'
+          - source: 's3://[[ s3_bucket_name ]]/components/cis_playbook.yml'
             destination: '/ansibleloc/cis_playbook.yml'
       - name: InvokeCisAnsible
         action: ExecuteBinary
         inputs:
           path: ansible-playbook
           arguments:
-            - '{{ build.DownloadCisPlaybook.inputs[0].destination }}'
+            - '{{ "build".DownloadCisPlaybook.inputs[0].destination }}'
             - '--tags=level1'
       - name: DownloadNginx
         action: S3Download
         inputs:
-          - source: 's3://{{ s3bucket }}/components/nginx.zip'
+          - source: 's3://[[ s3_bucket_name ]]/components/nginx.zip'
             destination: '/ansibleloc/nginx.zip'
       - name: UzipNginx
         action: ExecuteBash
@@ -58,7 +58,7 @@ phases:
       - name: DownloadNginxPlaybook
         action: S3Download
         inputs:
-          - source: 's3://{{ s3bucket }}/components/nginx_playbook.yml'
+          - source: 's3://[[ s3_bucket_name ]]/components/nginx_playbook.yml'
             destination: '/ansibleloc/nginx_playbook.yml'
       - name: InvokeNginxAnsible
         action: ExecuteBinary
