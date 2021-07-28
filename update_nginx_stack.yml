@@ -5,9 +5,8 @@
   tasks:
     - name: Replacing S3 bucket name 
       template:
-        remote_src: no
         src: "AnsibleConfig/component-nginx.j2"
-        dest: "AnsibleConfig/component_nginx.yml"
-        variable_start_string: "[["
-        variable_end_string: "]]"
+        dest: "AnsibleConfig/component-nginx.yml"
+        variable_start_string: "["
+        variable_end_string: "]"
 ...
