@@ -5,7 +5,9 @@
   tasks:
     - name: Creating service-linked role for autoscale service
       shell: aws iam create-service-linked-role --aws-service-name autoscaling.amazonaws.com
+      ignore_errors: yes
 
     - name: Creating service-linked role for image builder service
       shell: aws iam create-service-linked-role --aws-service-name imagebuilder.amazonaws.com
+      ignore_errors: yes
 ...
