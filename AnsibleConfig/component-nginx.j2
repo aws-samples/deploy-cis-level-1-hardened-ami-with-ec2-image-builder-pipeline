@@ -43,7 +43,7 @@ phases:
         inputs:
           path: ansible-playbook
           arguments:
-            - '{{ "build".DownloadCisPlaybook.inputs[0].destination }}'
+            - '{{ build.DownloadCisPlaybook.inputs[0].destination }}'
             - '--tags=level1'
       - name: DownloadNginx
         action: S3Download
