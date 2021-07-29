@@ -1,3 +1,4 @@
+#jinja2:variable_start_string:'[%', variable_end_string:'%]', trim_blocks: False
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 name: 'Ansible Playbook Execution on Amazon Linux 2'
@@ -6,7 +7,7 @@ schemaVersion: 1.0
 constants:
   - s3bucket:
       type: string
-      value: [s3_bucket_name]
+      value: [% s3_bucket_name %]
 phases:
   - name: helloworld
     steps:
@@ -24,7 +25,7 @@ phases:
       - name: DownloadLinuxCis
         action: S3Download
         inputs:
-          - source: 's3://[s3_bucket_name ]/components/linux-cis.zip'
+          - source: 's3://[% s3_bucket_name %]/components/linux-cis.zip'
             destination: '/ansibleloc/linux-cis.zip'
       - name: UzipLinuxCis
         action: ExecuteBash
@@ -35,7 +36,7 @@ phases:
       - name: DownloadCisPlaybook
         action: S3Download
         inputs:
-          - source: 's3://[ s3_bucket_name ]/components/cis_playbook.yml'
+          - source: 's3://[% s3_bucket_name %]/components/cis_playbook.yml'
             destination: '/ansibleloc/cis_playbook.yml'
       - name: InvokeCisAnsible
         action: ExecuteBinary
@@ -47,7 +48,7 @@ phases:
       - name: DownloadNginx
         action: S3Download
         inputs:
-          - source: 's3://[ s3_bucket_name ]/components/nginx.zip'
+          - source: 's3://[% s3_bucket_name %]/components/nginx.zip'
             destination: '/ansibleloc/nginx.zip'
       - name: UzipNginx
         action: ExecuteBash
@@ -58,7 +59,7 @@ phases:
       - name: DownloadNginxPlaybook
         action: S3Download
         inputs:
-          - source: 's3://[ s3_bucket_name ]/components/nginx_playbook.yml'
+          - source: 's3://[% s3_bucket_name %]/components/nginx_playbook.yml'
             destination: '/ansibleloc/nginx_playbook.yml'
       - name: InvokeNginxAnsible
         action: ExecuteBinary
