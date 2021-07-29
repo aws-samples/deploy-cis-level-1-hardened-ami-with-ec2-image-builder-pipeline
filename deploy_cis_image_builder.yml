@@ -23,4 +23,9 @@
         template_parameters: "{{ nginx_formatted_data }}"
         capabilities: "CAPABILITY_NAMED_IAM"
         region: us-east-1
+      register: cis_stack
+
+    - name: Checking results
+      debug:
+        msg: "{{ cis_stack }}"
 ...
