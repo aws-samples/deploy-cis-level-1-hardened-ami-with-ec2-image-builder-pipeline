@@ -123,7 +123,7 @@
     - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
       file:
         dest: /etc/cron.deny
-         state: absent
+        state: absent
 
     - name: "SCORED | 5.1.8 | PATCH | Check if cron.allow exists"
       stat:
