@@ -3,9 +3,9 @@
 # List users in order to look files inside each home directory
 - name: Install python selinux library required by future ansible modules
   yum:
-      name: libselinux-python
-      state: present
-      update_cache: true
+    name: libselinux-python
+    state: present
+    update_cache: true
 
 - name: "PRELIM | List users accounts"
   command: "awk -F: '{print $1}' /etc/passwd"
