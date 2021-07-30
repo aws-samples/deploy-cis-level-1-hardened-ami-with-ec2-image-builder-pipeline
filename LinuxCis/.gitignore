@@ -1,46 +1,21 @@
-.env
-*.log
-*.retry
-.vagrant
-.cache
-tests/*redhat-subscription
-tests/Dockerfile
-*.iso
-*.box
-packer_cache
-delete*
-ignore*
-# VSCode
-.vscode
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# DS_Store
-.DS_Store
-._*
-
-# Linux Editors
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-.elc
-auto-save-list
-tramp
-.\#*
 *.swp
-*.swo
-rh-creds.env
-travis.env
-
-# Lockdown-specific
-benchparse/
-*xccdf.xml
 *.retry
-test_inv
+.DS_Store
+.vscode-root
+test.yml
+tests/local-test.yml
+tests/.vagrant
+tests/Vagrantfile
+tests/test-inv
+tests/*.html
+tests/*.txt
+tests/*.retry
+.Python
+.molecule/
+bin/
+/etc/
+include/
+lib/
+pip-selfcheck.json
+share/
 
-# ignore refactr pipeline test conf
-.github/workflows

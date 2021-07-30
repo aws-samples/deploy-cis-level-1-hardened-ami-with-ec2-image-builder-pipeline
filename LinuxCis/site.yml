@@ -1,8 +1,0 @@
----
-- hosts: all
-  become: true
-  vars:
-    is_container: false
-
-  roles:
-  - role: "{{ playbook_dir }}"
