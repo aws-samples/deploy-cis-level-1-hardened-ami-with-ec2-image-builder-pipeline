@@ -165,7 +165,7 @@ Resources:
       DistributionConfigurationArn: !Ref Distribution
       ImageTestsConfiguration:
         ImageTestsEnabled: false
-        TimeoutMinutes: 60
+        TimeoutMinutes: 61
       Schedule:
         ScheduleExpression: 'cron(0 0 1 * ? *)'
         PipelineExecutionStartCondition: 'EXPRESSION_MATCH_ONLY'
