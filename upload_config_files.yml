@@ -2,6 +2,8 @@
 - name: Upload the configuration files to the S3 bucket
   hosts: localhost
   connection: local
+  vars:
+    s3_bucket_name: gbmtestingbucket
   tasks:
     - name: Uploading the linux-cis.zip
       aws_s3:
