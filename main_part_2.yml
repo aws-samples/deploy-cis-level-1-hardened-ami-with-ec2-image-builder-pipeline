@@ -25,7 +25,7 @@
 
     - name: Formatting data from nginx-config.json
       set_fact:
-        nginx_stack_data_formatted: "{{ iam_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+        nginx_stack_data_formatted: "{{ nginx_stack_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
 
     - name: Creating and deploying the nginx configuration stack
       cloudformation:
