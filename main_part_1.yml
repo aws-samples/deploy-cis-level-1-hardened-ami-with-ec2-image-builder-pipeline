@@ -45,4 +45,7 @@
 
 - name: Importing deploy_cis_image_builder.yml
   import_playbook: deploy_cis_image_builder.yml
+
+- name: Importing main_part_2.yml 
+  import_playbook: main_part_2.yml 
 ...

@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:
+  This template will deploy a sample EC2 ImageBuilder pipeline that will generate an AmazonLinux2 AMI.
+
+Parameters:
+  Environment:
+    Type: String
+    Description: >-
+      The values allowed for sandbox and dev.
+    AllowedValues:
+      - 'dev'
+      - 'devops'
+      - 'uat'
+
+  ImageBuilderBucketName:
+    Type: String
+    Description: >-
+      Enter the Name of the bucket where ImageBuilder Config lives.
+
+  NetworkStackName:
+    Description: Stack name which has all of the VPC configuration
+    Type: String
+
+  KMSStackName:
+    Description: Stack name which has all of the KMS configuration
+    Type: String
+
+  S3ConfigStackName:
+    Description: Stack name which has all of the Nginx S3 configuration
+    Type: String
+
+  S3PublicIpRange:
+    Description: >-
+      Run the following command for the list of ip address
+      curl https://ip-ranges.amazonaws.com/ip-ranges.json | jq -r '.prefixes[] | select(.region=="us-east-1") | select(.service=="S3") | .ip_prefix'
+    Type: String
+    Default: "0.0.0.0/0"
+
+Resources:
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${AWS::StackName}-EC2ImageBuilder-Profile'
+      Path: /
+      Roles:
+        - Fn::ImportValue: !Sub "${S3ConfigStackName}-Image-Builder-Role-Name"
+
+  ImageBuilderSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Linux EC2 Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          CidrIp:
+            Fn::ImportValue: !Sub "${NetworkStackName}-VPCCIDR"
+          FromPort: 8080
+          ToPort: 8080
+        - IpProtocol: tcp
+          CidrIp: !Ref S3PublicIpRange
+          FromPort: 443
+          ToPort: 443
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-VPCID"
+
+  ImageBuilderSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId:
+        Fn::ImportValue: !Sub "${KMSStackName}-KeyId"
+      TopicName: "NginxImageBuilderTopic"
+
+  ResourceGroup:
+    Type: "AWS::Inspector::ResourceGroup"
+    Properties:
+      ResourceGroupTags:
+        - Key: "ResourceGroup"
+          Value: "Nginx"
+
+  AssessmentTarget:
+    Type: AWS::Inspector::AssessmentTarget
+    Properties:
+      AssessmentTargetName : "NginxAssessmentTarget"
+      ResourceGroupArn : !Ref ResourceGroup
+
+  Component:
+    Type: AWS::ImageBuilder::Component
+    Properties:
+      Name: !Sub '${AWS::StackName}-LinuxCis-Component'
+      Platform: Linux
+      Version: 1.0.0
+      Description: 'This component will create an AMI with CIS level 1 Nginx playbook.'
+      ChangeDescription: 'Initial Version'
+      KmsKeyId:
+        Fn::ImportValue: !Sub "${KMSStackName}-KMS-ARN"
+      Tags:
+        build: helloworld 
+      Uri: !Sub 's3://${ImageBuilderBucketName}/components/component-nginx.yml'
+
+  Recipe:
+    Type: AWS::ImageBuilder::ImageRecipe
+    Properties:
+      Name: !Sub '${AWS::StackName}-LinuxCis-Recipe'
+      Description: 'This recipe will create an AMI based on AmazonLinux2 AMI and set the root drive to 50GB'
+      Version: 1.0.0
+      WorkingDirectory: "/workdir"
+      ParentImage: !Sub 'arn:aws:imagebuilder:${AWS::Region}:aws:image/amazon-linux-2-x86/x.x.x'
+      Components:
+        - ComponentArn: !Ref Component
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: 50
+            VolumeType: gp2
+            Encrypted: true # use aws/ebs key so we can share across regions
+            # Iops: 300
+
+  Infrastructure:
+    Type: AWS::ImageBuilder::InfrastructureConfiguration
+    Properties:
+      Name: !Sub '${AWS::StackName}-LinuxCis-Infrastructure'
+      Description: 'This infrastructure configuration will launch into our custom ImageBuilder VPC'
+      InstanceProfileName: !Ref InstanceProfile
+      SecurityGroupIds:
+        - !Ref ImageBuilderSG
+      SubnetId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1AID"
+      TerminateInstanceOnFailure: true 
+      SnsTopicArn: !Ref ImageBuilderSNSTopic
+      InstanceTypes:
+        - t3.micro
+      Logging:
+        S3Logs:
+          S3BucketName: !Ref ImageBuilderBucketName
+          S3KeyPrefix: 'nginx-imagebuilder'
+
+  Distribution:
+    Type: AWS::ImageBuilder::DistributionConfiguration
+    Properties:
+      Name: !Sub '${AWS::StackName}-LinuxNginx-Distribution'
+      Description: 'This distribution configuration will deploy our AMI to the current region'
+      Distributions:
+        - Region: !Ref 'AWS::Region'
+          AmiDistributionConfiguration:
+            Name: !Sub '${AWS::StackName}-LinuxNginx-{{ imagebuilder:buildDate }}' # the {{imagebuilder:buildDate}} variable is required in the output AMI name
+            AmiTags:
+              Name: !Sub '${AWS::StackName}-LinuxNginx-Ami'
+
+  Pipeline:
+    Type: AWS::ImageBuilder::ImagePipeline
+    Properties:
+      Name: !Sub '${AWS::StackName}-LinuxNginx-Pipeline'
+      Description: 'Deploys a sample AmazonLinux2 Ami to current region'
+      Status: ENABLED
+      ImageRecipeArn: !Ref Recipe
+      InfrastructureConfigurationArn: !Ref Infrastructure
+      DistributionConfigurationArn: !Ref Distribution
+      ImageTestsConfiguration:
+        ImageTestsEnabled: true 
+        TimeoutMinutes: 60
+      Schedule:
+        ScheduleExpression: 'cron(0 0 1 * ? *)'
+        PipelineExecutionStartCondition: 'EXPRESSION_MATCH_ONLY'
+
+  IBImage:
+    Type: AWS::ImageBuilder::Image
+    Properties:
+      ImageRecipeArn: !Ref Recipe
+      InfrastructureConfigurationArn: !Ref Infrastructure
+      DistributionConfigurationArn: !Ref Distribution
+      ImageTestsConfiguration:
+        ImageTestsEnabled: true 
+        TimeoutMinutes: 60
+      Tags:
+        ResourceGroup: 'Nginx'
