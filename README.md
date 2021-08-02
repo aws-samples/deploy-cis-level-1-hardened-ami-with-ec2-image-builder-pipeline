@@ -1,13 +1,7 @@
 # Deploying CIS Level 1 hardened AMIs with Amazon EC2 Image Builder
-In this post, we demonstrate how to create an automated process that builds and deploys Center for Internet Security (CIS) Level 1 hardened AMIs. The pattern that we deploy includes Image Builder, a CIS Level 1 hardened AMI, an application running on EC2 instances, and Amazon Inspector for security analysis. You deploy the AMI configured with the Image Builder pipeline to an application stack. The application stack consists of EC2 instances running Nginx. Lastly, we show you how to re-hydrate your application stack with a new AMI utilizing AWS CloudFormation and Amazon EC2 launch templates. You use Amazon Inspector to scan the EC2 instances launched from the Image Builder-generated AMI against the CIS Level 1 Benchmark.
+The repository includes all the necessary files necessary to deploy a CIS Level 1 hardened image with Amazon EC2 Image Builder. 
 
-## Motivation
-A common scenario AWS customers face is how to build processes that configure secure AWS resources that can be leveraged throughout the organization. You need to move fast in the cloud without compromising security best practices. Amazon Elastic Compute Cloud (Amazon EC2) allows you to deploy virtual machines in the AWS Cloud. EC2 AMIs provide the configuration utilized to launch an EC2 instance. You can use AMIs for several use cases, such as configuring applications, applying security policies, and configuring development environments. Developers and system administrators can deploy configuration AMIs to bring up EC2 resources that require little-to-no setup. Often times, multiple patterns are adopted for building and deploying AMIs. Because of this, you need the ability to create a centralized, automated pattern that can output secure, customizable AMIs.
-
-After going through this exercise, you should understand how to build, manage, and deploy AMIs to an application stack. The infrastructure deployed with this pipeline includes a basic web application, but you can use this pattern to fit many needs. After running through this post, you should feel comfortable using this pattern to configure an AMI pipeline for your organization.
-
-## Tech/framework used
-Image Builder allows you to develop an automated workflow for creating AMIs to fit your organization’s needs. You can streamline the creation and distribution of secure images, automate your patching process, and define security and application configuration into custom AWS AMIs. In this post, you use the following AWS services to implement this solution:
+## AWS Services Used
 
     AWS CloudFormation – AWS CloudFormation allows you to use domain-specific languages or simple text files to model and provision, in an automated and secure manner, all the resources needed for your applications across all Regions and accounts. You can deploy AWS resources in a safe, repeatable manner, and automate the provisioning of infrastructure.
 
@@ -46,3 +40,4 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
+
