@@ -1,5 +1,5 @@
 # Deploying CIS Level 1 hardened AMIs with Amazon EC2 Image Builder
-The repository includes all the necessary files necessary to deploy a CIS Level 1 hardened image with Amazon EC2 Image Builder. 
+The repository includes all the necessary files necessary to deploy a CIS Level 1 hardened image with Amazon EC2 Image Builder. Note that the tasks related with hardening the instance are outdated and therefore, the Amazon Inspector detects some security benchmarks as failing. Feel free to update the tasks or modifiy them to your liking.
 
 ## AWS Services Used
 
