@@ -5,7 +5,7 @@
   tasks:
     - name: Modifying kms-params.json with user information
       template:
-        src:  Parameters/kms-params.j2
+        src: Parameters/kms-params.j2
         dest: Parameters/kms-params.json
 
     - name: Loading data from kms-params.json

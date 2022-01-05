@@ -1,7 +1,7 @@
 [
   {
   	"ParameterKey": "KeyName",
-  	"ParameterValue": "{{ aws_key_name }}"
+  	"ParameterValue": "{{ aws_key_name | replace('\.*','') }}"
   },
   {
     "ParameterKey": "UserARN",
