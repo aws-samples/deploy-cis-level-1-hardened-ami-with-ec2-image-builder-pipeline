@@ -1,0 +1,43 @@
+---
+- name: Configure nginx, infrastructure ssm and deploy Amazon Inspector on hardened image 
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Obtaining CIS Hardened AMI info
+      ec2_ami_info:
+        region: us-east-1
+        filters:
+          "tag:Name": cis-image-builder-LinuxNginx-Ami
+      register: ami_result
+
+    - name: Establishing AMI ID variable
+      set_fact:
+        cis_hardened_AMI_id: "{{ ami_result['images'][0]['image_id'] }}"
+
+    - name: Modifying nginx-config.json with hardened AMI id 
+      template:
+        src:  Parameters/nginx-config.j2
+        dest: Parameters/nginx-config.json
+
+    - name: Loading data from nginx-config.json
+      set_fact:
+        nginx_stack_data: "{{ lookup('file','Parameters/nginx-config.json') | from_json }}"
+
+    - name: Formatting data from nginx-config.json
+      set_fact:
+        nginx_stack_data_formatted: "{{ nginx_stack_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Creating and deploying the nginx configuration stack
+      cloudformation:
+        stack_name: nginx-config 
+        template_body: '{{ lookup("file", "Templates/nginx-config.yml") }}'
+        template_parameters: "{{ nginx_stack_data_formatted }}" 
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+
+- name: Importing playbook create_infrastructure_ssm_stack.yml
+  import_playbook: create_infrastructure_ssm_stack.yml
+
+- name: Importing playbook deploy_amazon_inspector.yml 
+  import_playbook: deploy_amazon_inspector.yml 
+...

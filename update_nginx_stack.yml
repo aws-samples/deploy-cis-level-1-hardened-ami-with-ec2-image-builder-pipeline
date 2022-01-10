@@ -1,0 +1,10 @@
+---
+- name: Update the component-nginx.yml with the users S3 bucket name 
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Replacing S3 bucket name 
+      template:
+        src: "AnsibleConfig/component-nginx.j2"
+        dest: "AnsibleConfig/component-nginx.yml"
+...

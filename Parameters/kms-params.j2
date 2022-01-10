@@ -1,0 +1,10 @@
+[
+  {
+  	"ParameterKey": "KeyName",
+  	"ParameterValue": "{{ aws_key_name | replace('\.*','') }}"
+  },
+  {
+    "ParameterKey": "UserARN",
+    "ParameterValue": "arn:aws:iam::{{ aws_user_number_id }}:root"
+  }
+]

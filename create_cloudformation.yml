@@ -1,0 +1,20 @@
+---
+- name: Deploy CloudFormation template
+  hosts: localhost
+  tasks:
+    - name: Load data from vpc-params.json
+      set_fact:
+        vpc_loaded_data: "{{ lookup('file','Parameters/vpc-params.json') | from_json }}"
+
+    - name: Formatting data from vpc-params.json
+      set_fact:
+        vpc_formatted_data: "{{ vpc_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Deploy the VPC CloudFormation template
+      cloudformation:
+        stack_name: vpc-config
+        template_body: '{{ lookup("file", "Templates/vpc.yml") }}'
+        template_parameters: "{{ vpc_formatted_data }}"
+        capabilities: "CAPABILITY_IAM"
+        region: us-east-1
+...

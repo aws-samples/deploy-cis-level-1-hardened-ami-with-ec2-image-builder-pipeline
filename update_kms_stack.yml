@@ -1,0 +1,26 @@
+---
+- name: Update the AWS KMS CloudFormation stack with new parameters
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Replacing values of kms-params-v2.json with user information
+      template:
+        src: Parameters/kms-params-v2.j2
+        dest: Parameters/kms-params-v2.json
+
+    - name: Loading data from kms-params-v2.json
+      set_fact:
+        kms_updated_loaded_data: "{{ lookup('file','Parameters/kms-params-v2.json') | from_json }}"
+
+    - name: Formatting data from kms-params-v2.json
+      set_fact:
+        kms_updated_formatted_data: "{{ kms_updated_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}"
+
+    - name: Updating the KMS CloudFormation stack
+      cloudformation:
+        stack_name: kms-config
+        template_body: '{{ lookup("file", "Templates/kms.yml") }}'
+        template_parameters: "{{ kms_updated_formatted_data }}"
+        capabilities: "CAPABILITY_IAM"
+        region: us-east-1
+...

@@ -1,0 +1,26 @@
+---
+- name: Deploy the KMS key CloudFormation template
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Modifying kms-params.json with user information
+      template:
+        src: Parameters/kms-params.j2
+        dest: Parameters/kms-params.json
+
+    - name: Loading data from kms-params.json
+      set_fact:
+        kms_loaded_data: "{{ lookup('file','Parameters/kms-params.json') | from_json }}"
+
+    - name: Formatting result from kms-params.json
+      set_fact:
+        kms_formatted_data: "{{ kms_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Creating and deploying KMS config stack
+      cloudformation:
+        stack_name: kms-config
+        template_body: "{{ lookup('file','Templates/kms.yml') }}"
+        template_parameters:  "{{ kms_formatted_data }}"
+        capabilities: "CAPABILITY_IAM"
+        region: us-east-1
+...

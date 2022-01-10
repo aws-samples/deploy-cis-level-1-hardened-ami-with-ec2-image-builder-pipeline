@@ -1,0 +1,31 @@
+---
+- name: Deploy the nginx-image-builder.yml template
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Modifying nginx-image-builder-params.json with user information 
+      template:
+        src:  Parameters/nginx-image-builder-params.j2
+        dest: Parameters/nginx-image-builder-params.json
+
+    - name: Loading data from nginx-image-builder-params.json
+      set_fact:
+        nginx_loaded_data: "{{ lookup('file','Parameters/nginx-image-builder-params.json') | from_json }}"
+
+    - name: Formatting data from nginx-image-builder-params.json
+      set_fact:
+        nginx_formatted_data: "{{ nginx_loaded_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Adding the CIS Image Builder stack and deploying
+      cloudformation:
+        stack_name: cis-image-builder
+        template_body: '{{ lookup("file", "Templates/nginx-image-builder.yml") }}'
+        template_parameters: "{{ nginx_formatted_data }}"
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+      register: cis_stack
+
+    - name: Checking results
+      debug:
+        msg: "{{ cis_stack }}"
+...

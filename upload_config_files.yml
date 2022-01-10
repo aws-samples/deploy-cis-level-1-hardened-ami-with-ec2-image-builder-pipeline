@@ -1,0 +1,42 @@
+---
+- name: Upload the configuration files to the S3 bucket
+  hosts: localhost
+  connection: local
+  vars:
+    s3_bucket_name: gbmtestingbucket
+  tasks:
+    - name: Uploading the linux-cis.zip
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components/linux-cis.zip
+        mode: put
+        src: linux-cis.zip 
+
+    - name: Uploading the nginx.zip
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components/nginx.zip
+        mode: put
+        src: nginx.zip 
+
+    - name: Uploading the cis_playbook.yml
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components/cis_playbook.yml
+        mode: put
+        src: AnsibleConfig/cis_playbook.yml 
+
+    - name: Uploading the nginx_playbook.yml
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components/nginx_playbook.yml
+        mode: put
+        src: AnsibleConfig/nginx_playbook.yml
+
+    - name: Uploading the component-nginx.yml
+      aws_s3:
+        bucket: "{{ s3_bucket_name }}"
+        object: components/component-nginx.yml
+        mode: put
+        src: AnsibleConfig/component-nginx.yml
+...

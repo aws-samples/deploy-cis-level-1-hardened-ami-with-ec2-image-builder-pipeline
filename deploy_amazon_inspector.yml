@@ -1,0 +1,26 @@
+---
+- name: Update the cis-image-builder stack 
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Modifying nginx-image-builder-params.json with user information 
+      template:
+        src:  Parameters/nginx-image-builder-params.j2
+        dest: Parameters/nginx-image-builder-params.json
+
+    - name: Load data from nginx-image-builder-params.json
+      set_fact:
+        nginx_image_builder_data: "{{ lookup('file','Parameters/nginx-image-builder-params.json') | from_json }}"
+
+    - name: Formatting data from nginx-image-builder-params.json
+      set_fact:
+        nginx_image_builder_formatted_data: "{{ nginx_image_builder_data | items2dict(key_name='ParameterKey', value_name='ParameterValue') }}" 
+
+    - name: Updating the cis-image-builder stack and deploying the amazon inspector 
+      cloudformation:
+        stack_name: cis-image-builder
+        template_body: '{{ lookup("file", "Templates/updated-nginx-image-builder.yml") }}'
+        template_parameters: "{{ nginx_image_builder_formatted_data }}"
+        capabilities: "CAPABILITY_NAMED_IAM"
+        region: us-east-1
+...

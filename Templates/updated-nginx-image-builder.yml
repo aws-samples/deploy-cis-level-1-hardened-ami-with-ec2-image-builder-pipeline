@@ -100,7 +100,7 @@ Resources:
       KmsKeyId:
         Fn::ImportValue: !Sub "${KMSStackName}-KMS-ARN"
       Tags:
-        build: helloworld
+        build: helloworld 
       Uri: !Sub 's3://${ImageBuilderBucketName}/components/component-nginx.yml'
 
   Recipe:
@@ -132,11 +132,10 @@ Resources:
         - !Ref ImageBuilderSG
       SubnetId:
         Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1AID"
-      TerminateInstanceOnFailure: false
+      TerminateInstanceOnFailure: true 
       SnsTopicArn: !Ref ImageBuilderSNSTopic
       InstanceTypes:
-        - t3.medium
-        - t3.large
+        - t3.micro
       Logging:
         S3Logs:
           S3BucketName: !Ref ImageBuilderBucketName
@@ -164,15 +163,12 @@ Resources:
       InfrastructureConfigurationArn: !Ref Infrastructure
       DistributionConfigurationArn: !Ref Distribution
       ImageTestsConfiguration:
-        ImageTestsEnabled: false
-        TimeoutMinutes: 61
+        ImageTestsEnabled: true 
+        TimeoutMinutes: 60
       Schedule:
         ScheduleExpression: 'cron(0 0 1 * ? *)'
         PipelineExecutionStartCondition: 'EXPRESSION_MATCH_ONLY'
 
-# Uncomment this block if you want an initial AMI to be created during Stack Creation
-# Warning:  This can take between 30-90 minutes for the stack to finish completion
-# EC2 ImageBuilder Image
   IBImage:
     Type: AWS::ImageBuilder::Image
     Properties:
@@ -180,7 +176,7 @@ Resources:
       InfrastructureConfigurationArn: !Ref Infrastructure
       DistributionConfigurationArn: !Ref Distribution
       ImageTestsConfiguration:
-        ImageTestsEnabled: false
+        ImageTestsEnabled: true 
         TimeoutMinutes: 60
       Tags:
         ResourceGroup: 'Nginx'
