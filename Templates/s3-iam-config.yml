@@ -59,6 +59,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref DemoConfigS3BucketName
+      VersioningConfiguration:
+        Status: Enabled
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -70,6 +72,25 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         RestrictPublicBuckets: true
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Deny
+            Resource:
+              - !GetAtt 'S3Bucket.Arn'
+              - !Sub '${S3Bucket.Arn}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport':
+                  - 'false'
 
   S3PutLambdaRole:
     Type: AWS::IAM::Role

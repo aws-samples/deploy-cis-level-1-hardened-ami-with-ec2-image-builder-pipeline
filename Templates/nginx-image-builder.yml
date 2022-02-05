@@ -167,7 +167,7 @@ Resources:
         ImageTestsEnabled: false
         TimeoutMinutes: 60
       Schedule:
-        ScheduleExpression: 'cron(0 0 1 * *)'
+        ScheduleExpression: cron(0 5 1 * ? *)
         PipelineExecutionStartCondition: 'EXPRESSION_MATCH_ONLY'
 
 # Uncomment this block if you want an initial AMI to be created during Stack Creation
